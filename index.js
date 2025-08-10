@@ -68,7 +68,7 @@ client.on("interactionCreate", async (interaction) => {
     } catch (error) {
       await interaction.reply({
         content: "There was an error while executing this command!",
-        ephemeral: true,
+        flags: 64,
       });
     }
   } else if (interaction.isButton()) {
@@ -107,7 +107,12 @@ const eventFiles = fs
   .filter((file) => file.endsWith(".js"));
 for (const file of eventFiles) {
   const event = require(`./events/${file}`);
-  client.once(event.name, (...args) => event.execute(...args, client));
+  const bind = (...args) => event.execute(...args, client);
+  if (event.once) {
+    client.once(event.name, bind);
+  } else {
+    client.on(event.name, bind);
+  }
 }
 
 client.login(process.env.BOT_TOKEN);
